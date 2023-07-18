@@ -4,6 +4,7 @@ import os
 from urllib import response
 import requests
 import json
+import csv
 import re
 from tkinter import * 
 from tkinter import ttk
@@ -50,8 +51,9 @@ def load_to_objects():
 
 def load_to_objects_rows():
     global resp
-    dataset_id = dataset_id_entry.get()
     global api_key
+    global templates
+    dataset_id = dataset_id_entry.get()
     print (f"https://apidata.mos.ru/v1/datasets/{dataset_id}/rows")
     resp = requests.get(f"https://apidata.mos.ru/v1/datasets/{dataset_id}/rows?api_key={api_key}")
 
@@ -60,7 +62,6 @@ def load_to_objects_rows():
         json.dump(resp.text, f)
     print(resp.text)
 
-    templates = json.loads(resp.text)
     templates = json.loads(resp.text)
     with open('sw_templates.json', 'w') as f:
                 f.write("")
@@ -77,11 +78,19 @@ def load_to_objects_rows():
                 f.write(f"{section}: {commands} \n")
             print(f"{section}: {commands}")
 
+def create_csv_from_rows():
+    templates = json.loads(resp.text)
+    headers = templates[0].keys()
+
+    with open('file.csv', 'w') as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(templates)
+
 #
 global dataset_id
 global api_key
 global resp
-
 
 root = Tk()
 root.title("Some Programm :D")
@@ -108,20 +117,18 @@ else:
         api_key = f.read()
         api_key_entry.insert(0, api_key)
 
-#find_button = ttk.Button(text="Find", command = click_button)
-#find_button.pack(anchor=N)
-
-load_button = ttk.Button(text="Load", command = load_to_objects)
+load_button = ttk.Button(text="Load description", command = load_to_objects)
 load_button.pack(anchor=N)
 
-load_button = ttk.Button(text="Load rows", command = load_to_objects_rows)
-load_button.pack(anchor=N)
+load_rows_button = ttk.Button(text="Load rows", command = load_to_objects_rows)
+load_rows_button.pack(anchor=N)
+
+create_csv_button = ttk.Button(text="Create CSV from rows", command = create_csv_from_rows)
+create_csv_button.pack(anchor=N)
 
 load_key_button = ttk.Button(text="Load API Key", command = api_key_check)
 load_key_button.pack(anchor=N)
 root.mainloop()
-
-#os.remove("sw_templates.json")
 
 
 
